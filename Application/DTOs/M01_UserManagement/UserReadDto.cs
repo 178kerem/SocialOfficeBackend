@@ -1,11 +1,12 @@
 ﻿namespace SocialOffice.Application.DTOs.M01_UserManagement;
-public record UserReadDto(
-    Guid Id,
-    string FirstName,
-    string LastName,
-    string Email,
-    string Phone,
-    string RoleName,
-    DateTime? LastLoginAt
-);
+public class UserReadDto
+{
+    public Guid Id { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string RoleName { get; set; } = string.Empty;
+    public DateTime? LastLoginAt { get; set; }
+}
 
