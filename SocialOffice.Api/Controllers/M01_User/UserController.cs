@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
+﻿using Microsoft.AspNetCore.Mvc;
 using SocialOffice.Application.DTOs.M01_UserManagement;
+using SocialOffice.Application.DTOs.M02_UserMovements;
 using SocialOffice.Application.Interfaces.Services.Abstract.M01_User;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
 namespace SocialOffice.Api.Controllers.M01_User
 {
     [ApiController]
@@ -79,8 +75,23 @@ namespace SocialOffice.Api.Controllers.M01_User
 
             return Ok(result.Messages);
         }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Password))
+                return BadRequest(new { message = "Email ve şifre gerekli" });
 
-        
+            var result = await _userService.LoginAsync(dto);
+
+            if (!result.IsSuccess)
+            {
+                // result.Messages array veya string olabilir
+                return Unauthorized(new { message = result.Messages });
+            }
+
+            // result.Data UserLoginResultDto tipinde
+            return Ok(result.Data);
+        }
 
     }
 }

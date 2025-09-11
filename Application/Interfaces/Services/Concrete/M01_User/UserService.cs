@@ -1,21 +1,35 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using SocialOffice.Application.DTOs.M01_UserManagement;
+using SocialOffice.Application.DTOs.M02_UserMovements;
 using SocialOffice.Application.Interfaces.Persistence.M01_User;
 using SocialOffice.Application.Interfaces.Services.Abstract.M01_User;
 using SocialOffice.Domain.Entitites.M01_User;
 using SocialOffice.Domain.Utilities.Results;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 namespace SocialOffice.Application.Interfaces.Services.Concrete.M01_User
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-
-        public UserService(IUserRepository userRepository, IMapper mapper)
+        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IConfiguration _configuration;
+        public UserService(
+        IUserRepository userRepository,
+        IMapper mapper,
+        IPasswordHasher<User> passwordHasher,
+        IConfiguration configuration) // <-- burayı ekle
         {
-            _userRepository = userRepository;
-            _mapper = mapper;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration)); // <-- burayı ekle
         }
 
         public async Task<IDataResult<UserReadDto>> GetByIdAsync(Guid id)
@@ -239,5 +253,103 @@ namespace SocialOffice.Application.Interfaces.Services.Concrete.M01_User
                 };
             }
         }
+        public async Task<IDataResult<UserLoginResultDto>> LoginAsync(UserLoginDto loginDto)
+        {
+            Console.WriteLine("LoginAsync started");
+
+            if (loginDto == null)
+            {
+                Console.WriteLine("loginDto is null");
+                throw new ArgumentNullException(nameof(loginDto));
+            }
+
+            Console.WriteLine($"loginDto.Email: {loginDto.Email}");
+            Console.WriteLine($"loginDto.Password: {(string.IsNullOrEmpty(loginDto.Password) ? "empty" : "provided")}");
+
+            if (_userRepository == null)
+            {
+                Console.WriteLine("_userRepository is null");
+                throw new InvalidOperationException("_userRepository is not injected");
+            }
+
+            if (_configuration == null)
+            {
+                Console.WriteLine("_configuration is null");
+                throw new InvalidOperationException("_configuration is not injected");
+            }
+
+            // Kullanıcıyı e-mail ile al
+            var user = await _userRepository.GetByEmailAsync(loginDto.Email);
+
+            if (user == null)
+            {
+                Console.WriteLine($"User not found for email: {loginDto.Email}");
+                return new DataResult<UserLoginResultDto>(false, "UserNotFound", "Kullanıcı bulunamadı");
+            }
+
+            Console.WriteLine($"Found user: {user.Email}");
+
+            // PasswordHash kontrolü
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                Console.WriteLine($"PasswordHash is null or empty for user: {user.Email}");
+                return new DataResult<UserLoginResultDto>(false, "NoPasswordHash", "Kullanıcının şifresi bulunamadı");
+            }
+
+            // Şifre kontrolü
+            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password ?? "", user.PasswordHash))
+            {
+                Console.WriteLine($"Invalid password for user: {user.Email}");
+                return new DataResult<UserLoginResultDto>(false, "InvalidPassword", "Şifre hatalı");
+            }
+
+            // JWT key kontrolü
+            var keyString = _configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(keyString))
+            {
+                Console.WriteLine("JWT key is missing in configuration");
+                throw new InvalidOperationException("JWT Key configuration is missing");
+            }
+
+            var key = Encoding.UTF8.GetBytes(keyString);
+
+            var expireMinutes = 60;
+            var expireStr = _configuration["Jwt:ExpireMinutes"];
+            if (!string.IsNullOrEmpty(expireStr) && int.TryParse(expireStr, out var parsed))
+                expireMinutes = parsed;
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, "User")
+        }),
+                Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
+                Issuer = _configuration["Jwt:Issuer"] ?? "defaultIssuer",
+                Audience = _configuration["Jwt:Audience"] ?? "defaultAudience",
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature
+                )
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            var resultDto = new UserLoginResultDto
+            {
+                UserId = user.Id,
+                FullName = $"{user.FirstName} {user.LastName}",
+                Email = user.Email,
+                Token = tokenString
+            };
+
+            Console.WriteLine($"Login successful for user: {user.Email}, Token length: {tokenString.Length}");
+
+            return new DataResult<UserLoginResultDto>(resultDto, true, "Success", "Başarılı giriş");
+        }
     }
-}
+    }

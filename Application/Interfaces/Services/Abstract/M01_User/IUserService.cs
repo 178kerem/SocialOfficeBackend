@@ -1,5 +1,5 @@
 ﻿using SocialOffice.Application.DTOs.M01_UserManagement;
-
+using SocialOffice.Application.DTOs.M02_UserMovements;
 using SocialOffice.Domain.Utilities.Results;
 namespace SocialOffice.Application.Interfaces.Services.Abstract.M01_User
 {
@@ -12,7 +12,7 @@ namespace SocialOffice.Application.Interfaces.Services.Abstract.M01_User
         Task<IResult> CreateAsync(UserCreateDto dto);
         Task<IResult> UpdateAsync(UserUpdateDto dto);
         Task<IResult> DeleteAsync(Guid id);
-
+        Task<IDataResult<UserLoginResultDto>> LoginAsync(UserLoginDto loginDto);
     }
 }
 
