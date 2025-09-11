@@ -1,13 +1,10 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SocialOffice.Application.Extensions;
+using SocialOffice.Domain.Entitites.M01_User;
 using SocialOffice.Infrastructure.Extensions;
 using SocialOffice.Infrastructure.Persistence;
-using System;
-using System.IO;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +18,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // frontend adresin
+        policy.WithOrigins("http://localhost:5173") // frontend adresin
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -56,11 +53,26 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath);
     }
 });
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
-// Custom Service Registrations
+builder.Services.AddAuthorization();
 builder.Services.AddApplicationService();
 builder.Services.AddInfrastructureService();
-
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 var app = builder.Build();
 
 // HTTP Pipeline
@@ -73,6 +85,8 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty; // Swagger ana sayfada açýlýr
     });
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseCors(); // CORS middleware aktif ediliyor
