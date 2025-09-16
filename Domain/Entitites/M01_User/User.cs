@@ -1,4 +1,5 @@
-﻿using SocialOffice.Domain.Entitites.Shared;
+﻿using SocialOffice.Domain.Entitites.M03_UserInterest;
+using SocialOffice.Domain.Entitites.Shared;
 namespace SocialOffice.Domain.Entitites.M01_User
 {
     public class User : BaseEntity
@@ -10,5 +11,6 @@ namespace SocialOffice.Domain.Entitites.M01_User
         public string Phone { get; set; } = null!;
         public DateTime? LastLoginAt { get; set; }
         public string? LastLoginIp { get; set; }
+        public ICollection<UserInterest> UserInterests { get; set; } = new List<UserInterest>();
     }
 }

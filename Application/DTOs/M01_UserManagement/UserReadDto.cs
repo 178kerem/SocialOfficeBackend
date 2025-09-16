@@ -1,5 +1,5 @@
 ﻿namespace SocialOffice.Application.DTOs.M01_UserManagement;
-public class UserReadDto
+public class UserDto
 {
     public Guid Id { get; set; }
     public string FirstName { get; set; } = string.Empty;

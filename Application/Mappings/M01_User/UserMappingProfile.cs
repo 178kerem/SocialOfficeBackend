@@ -6,8 +6,8 @@ public class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {
-        // User -> UserReadDto
-        CreateMap<User, UserReadDto>();
+        // User -> UserDto
+        CreateMap<User, UserDto>();
 
         // UserCreateDto -> User
         CreateMap<UserCreateDto, User>()
