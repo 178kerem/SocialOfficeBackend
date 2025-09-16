@@ -32,19 +32,19 @@ namespace SocialOffice.Application.Interfaces.Services.Concrete.M01_User
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration)); // <-- burayı ekle
         }
 
-        public async Task<IDataResult<UserReadDto>> GetByIdAsync(Guid id)
+        public async Task<IDataResult<UserDto>> GetByIdAsync(Guid id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user is null)
-                return new DataResult<UserReadDto>
+                return new DataResult<UserDto>
                 {
                     IsSuccess = false,
                     Messages = new List<KeyValuePair<string, string>> { new("User", "User not found.") },
                     Data = null
                 };
 
-            var dto = _mapper.Map<UserReadDto>(user);
-            return new DataResult<UserReadDto>
+            var dto = _mapper.Map<UserDto>(user);
+            return new DataResult<UserDto>
             {
                 IsSuccess = true,
                 Messages = new List<KeyValuePair<string, string>>(),
@@ -52,19 +52,19 @@ namespace SocialOffice.Application.Interfaces.Services.Concrete.M01_User
             };
         }
 
-        public async Task<IDataResult<UserReadDto>> GetByEmailAsync(string email)
+        public async Task<IDataResult<UserDto>> GetByEmailAsync(string email)
         {
             var user = await _userRepository.GetByEmailAsync(email);
             if (user is null)
-                return new DataResult<UserReadDto>
+                return new DataResult<UserDto>
                 {
                     IsSuccess = false,
                     Messages = new List<KeyValuePair<string, string>> { new("User", "User not found.") },
                     Data = null
                 };
 
-            var dto = _mapper.Map<UserReadDto>(user);
-            return new DataResult<UserReadDto>
+            var dto = _mapper.Map<UserDto>(user);
+            return new DataResult<UserDto>
             {
                 IsSuccess = true,
                 Messages = new List<KeyValuePair<string, string>>(),
@@ -72,12 +72,12 @@ namespace SocialOffice.Application.Interfaces.Services.Concrete.M01_User
             };
         }
 
-        public async Task<IDataResult<IEnumerable<UserReadDto>>> GetAllAsync()
+        public async Task<IDataResult<IEnumerable<UserDto>>> GetAllAsync()
         {
             var users = await _userRepository.GetAllAsync();
-            var dtoList = _mapper.Map<IEnumerable<UserReadDto>>(users);
+            var dtoList = _mapper.Map<IEnumerable<UserDto>>(users);
 
-            return new DataResult<IEnumerable<UserReadDto>>
+            return new DataResult<IEnumerable<UserDto>>
             {
                 IsSuccess = true,
                 Messages = new List<KeyValuePair<string, string>>(),

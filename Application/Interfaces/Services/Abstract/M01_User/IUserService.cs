@@ -6,9 +6,9 @@ namespace SocialOffice.Application.Interfaces.Services.Abstract.M01_User
     public interface IUserService
     {
 
-        Task<IDataResult<UserReadDto>> GetByIdAsync(Guid id);
-        Task<IDataResult<UserReadDto>> GetByEmailAsync(string email);
-        Task<IDataResult<IEnumerable<UserReadDto>>> GetAllAsync();
+        Task<IDataResult<UserDto>> GetByIdAsync(Guid id);
+        Task<IDataResult<UserDto>> GetByEmailAsync(string email);
+        Task<IDataResult<IEnumerable<UserDto>>> GetAllAsync();
         Task<IResult> CreateAsync(UserCreateDto dto);
         Task<IResult> UpdateAsync(UserUpdateDto dto);
         Task<IResult> DeleteAsync(Guid id);
