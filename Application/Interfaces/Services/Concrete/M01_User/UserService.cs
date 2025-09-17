@@ -344,7 +344,8 @@ namespace SocialOffice.Application.Interfaces.Services.Concrete.M01_User
                 UserId = user.Id,
                 FullName = $"{user.FirstName} {user.LastName}",
                 Email = user.Email,
-                Token = tokenString
+                Token = tokenString,
+                Type = user.Type
             };
 
             Console.WriteLine($"Login successful for user: {user.Email}, Token length: {tokenString.Length}");
