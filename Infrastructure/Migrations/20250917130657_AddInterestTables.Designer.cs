@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SocialOffice.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SocialOffice.Infrastructure.Persistence;
 namespace SocialOffice.Infrastructure.Migrations
 {
     [DbContext(typeof(SOfficeDbContext))]
-    partial class SOfficeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917130657_AddInterestTables")]
+    partial class AddInterestTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
